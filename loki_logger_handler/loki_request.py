@@ -1,5 +1,6 @@
 import gzip
 import requests
+from urllib3.util import Retry
 
 
 
@@ -32,6 +33,13 @@ class LokiRequest:
         self.headers = additional_headers if additional_headers is not None else {}
         self.headers["Content-Type"] = "application/json"
         self.session = requests.Session()
+        retries = Retry(
+            total=3,
+            backoff_factor=0.1,
+            status_forcelist=[502, 503, 504],
+            allowed_methods={'POST'},
+        )
+        self.session.mount('https://', requests.adapters.HTTPAdapter(max_retries=retries))
 
     def send(self, data):
         """
