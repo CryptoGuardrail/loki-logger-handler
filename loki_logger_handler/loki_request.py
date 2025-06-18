@@ -34,8 +34,8 @@ class LokiRequest:
         self.headers["Content-Type"] = "application/json"
         self.session = requests.Session()
         retries = Retry(
-            total=3,
-            backoff_factor=0.1,
+            total=5,
+            backoff_factor=0.2,
             status_forcelist=[500, 502, 503, 504],
             allowed_methods={'POST'},
         )
@@ -56,12 +56,12 @@ class LokiRequest:
             if self.compressed:
                 self.headers["Content-Encoding"] = "gzip"
                 data = gzip.compress(data.encode("utf-8"))
-            
+
             response = self.session.post(self.url, data=data, auth=self.auth, headers=self.headers)
             response.raise_for_status()
-            
+
         except requests.RequestException as e:
-            
+
             if response is not None:
                 response_message=  f"Response status code: {response.status_code}, response text: {response.text}, post request URL: {response.request.url}"
                 raise requests.RequestException(f"Error while sending logs: {str(e)}\nCaptured error details:\n{response_message}") from e

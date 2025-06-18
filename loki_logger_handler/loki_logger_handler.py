@@ -67,7 +67,7 @@ class LokiLoggerHandler(logging.Handler):
         # Create a logger for self-errors if enabled
         if self.enable_self_errors:
             self.debug_logger = logging.getLogger("LokiHandlerDebug")
-            self.debug_logger.setLevel(logging.ERROR)
+            self.debug_logger.setLevel(logging.WARNING)
             console_handler = logging.StreamHandler()
             self.debug_logger.addHandler(console_handler)
 
@@ -148,7 +148,7 @@ class LokiLoggerHandler(logging.Handler):
             try:
                 self.request.send(streams.serialize())
             except requests.RequestException as e:
-                 self.handle_unexpected_error(e)
+                self.handle_unexpected_error(e, level=logging.WARNING)
 
 
     def write(self, message):
@@ -220,7 +220,7 @@ class LokiLoggerHandler(logging.Handler):
             del log_record[key]
 
 
-    def handle_unexpected_error(self, e):
+    def handle_unexpected_error(self, e, level=logging.ERROR):
         """
         Handles unexpected errors by logging them and setting the error flag.
 
@@ -231,8 +231,8 @@ class LokiLoggerHandler(logging.Handler):
             None
         """
         if self.enable_self_errors:
-            self.debug_logger.error(
-                            "Unexpected error: %s", e, exc_info=True)
+            self.debug_logger.log(
+                            level, "Unexpected error: %s", e, exc_info=True)
         self.error = True
 
 class LogLine:
